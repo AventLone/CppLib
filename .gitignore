@@ -1,0 +1,10 @@
+# To ignore all the `build` folders under the root directory, you can add the following line to your `.gitignore` file:
+# ```
+# build/
+# ```
+# This will ignore all the directories named `build` that are located anywhere in your repository. If you want to ignore only the `build` directories that are located in the root directory, you can use the following line instead:
+# ```
+# /build/
+# ```
+build/
+lib/
