@@ -150,15 +150,15 @@ void FocusStacking::focusStack(const std::vector<cv::Mat>& aligned_imgs, cv::Mat
     {
         for (int j = 0; j < laps[0].cols; ++j)
         {
-            auto pixl = laps[0].at<float>(i, j);
+            auto pixl = laps[0].ptr<float>(i)[j];
             for (const auto& img : laps)
             {
-                if (pixl < img.at<float>(i, j))
+                if (pixl < img.ptr<float>(i)[j])
                 {
-                    pixl = img.at<float>(i, j);
+                    pixl = img.ptr<float>(i)[j];
                 }
             }
-            maxim.at<float>(i, j) = pixl;
+            maxim.ptr<float>(i)[j] = pixl;
         }
     }
 

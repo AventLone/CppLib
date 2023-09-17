@@ -17,6 +17,11 @@ inline void exitWithInfo(const std::string& error_info)
     exit(EXIT_FAILURE);
 }
 
+inline void throwError(const std::string& error_info)
+{
+    throw std::runtime_error("\033[1;31mError: " + error_info + "\033[0m");
+}
+
 /********************************************************************************
  * @brief Parse a setting file, yaml, to get value of the parameter.
  * @param setting_file Path to the setting file.
@@ -26,7 +31,6 @@ inline void exitWithInfo(const std::string& error_info)
 template<typename T>
 T parseSettings(const std::string& setting_file, const std::string& param);
 
-
 /********************************************************************************
  * @brief Parse a setting file, yaml, to get values of the parameters.
  * @param setting_file Path to the setting file.
@@ -34,17 +38,16 @@ T parseSettings(const std::string& setting_file, const std::string& param);
  * @return Values of your parameters.
  ********************************************************************************/
 template<std::size_t N>
-std::array<std::variant<double, std::string>, N> parseSettings(const std::string& setting_file,
-                                                               const std::array<std::string, N>& params)
+std::array<std::variant<int, double, std::string, cv::Mat>, N> parseSettings(const std::string& setting_file,
+                                                                             const std::array<std::string, N>& params)
 {
     cv::FileStorage fs_ettings(setting_file, cv::FileStorage::READ);
     if (!fs_ettings.isOpened())
     {
-        std::cerr << "Failed to open settings file at: " << setting_file << std::endl;
-        exit(EXIT_FAILURE);
+        throwError("Failed to open settings file at: " + setting_file);
     }
 
-    std::array<std::variant<double, std::string>, N> outcomes;
+    std::array<std::variant<int, double, std::string, cv::Mat>, N> outcomes;
 
     for (int i = 0; i < N; ++i)
     {
@@ -52,17 +55,27 @@ std::array<std::variant<double, std::string>, N> parseSettings(const std::string
 
         if (node.isReal())
         {
-            outcomes[i] = node.real();
+            // outcomes[i] = node.real();
+            outcomes[i] = double(node);
+        }
+        else if (node.isInt())
+        {
+            outcomes[i] = int(node);
         }
         else if (node.isString())
         {
-            outcomes[i] = node.string();
+            outcomes[i] = std::string(node);
+        }
+        else if (node.isMap())
+        {
+            outcomes[i] = node.mat();
         }
         else
         {
-            exitWithInfo(params[i] + "parameter doesn't exist");
+            throwError("\"" + params[i] + "\"" + " parameter doesn't exist");
         }
     }
+    fs_ettings.release();
     return outcomes;
 }
 }   // namespace avent

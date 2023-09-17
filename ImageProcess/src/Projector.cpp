@@ -1,31 +1,32 @@
 #include "Projector.h"
 
 
-Projector::Projector(const std::string& camera_info_path, const cv::Point2f& tvec, float depth)
-    : tvec_(tvec), depth_(depth)
+Projector::Projector(const std::string& setting_file, const cv::Point2f& translation, float depth)
+    : mTranslation(translation), mDepth(depth)
 {
     /** Read camera parameters from the yaml file **/
-    cv::FileStorage fs(camera_info_path, cv::FileStorage::READ);
-    fs["camera_matrix"] >> camera_matrix;
-    fs["distortion_coefficients"] >> dist_coeffs;
-    if (camera_matrix.empty() || dist_coeffs.empty())
+    
+    cv::FileStorage fs(setting_file, cv::FileStorage::READ);
+    fs["camera_matrix"] >> mCameraMatrix;
+    fs["distortion_coefficients"] >> mDistCoeffs;
+    if (mCameraMatrix.empty() || mDistCoeffs.empty())
     {
         throw std::runtime_error("\033[1;31mFailed to read camera parameters!\033[0m");
     }
     fs.release();
-    new_camera_matrix =
-        cv::getOptimalNewCameraMatrix(camera_matrix, dist_coeffs, cv::Size(1600, 1200), 1, cv::Size(1600, 1200));
+    mNewCameraMatrix =
+        cv::getOptimalNewCameraMatrix(mCameraMatrix, mDistCoeffs, cv::Size(1600, 1200), 1, cv::Size(1600, 1200));
 
-    fx = new_camera_matrix.at<double>(0, 0);
-    fy = new_camera_matrix.at<double>(1, 1);
-    cx = new_camera_matrix.at<double>(0, 2);
-    cy = new_camera_matrix.at<double>(1, 2);
+    fx = mNewCameraMatrix.at<double>(0, 0);
+    fy = mNewCameraMatrix.at<double>(1, 1);
+    cx = mNewCameraMatrix.at<double>(0, 2);
+    cy = mNewCameraMatrix.at<double>(1, 2);
 }
 
 std::vector<cv::Point2f> Projector::detect(const cv::Mat& src) const
 {
     cv::Mat undistorted_img, img_gray, img_blur, img_binary;
-    cv::undistort(src, undistorted_img, camera_matrix, dist_coeffs, new_camera_matrix);
+    cv::undistort(src, undistorted_img, mCameraMatrix, mDistCoeffs, mNewCameraMatrix);
     cv::cvtColor(undistorted_img, img_gray, cv::COLOR_BGR2GRAY);
     cv::medianBlur(img_gray, img_blur, 5);
     cv::threshold(img_blur, img_binary, 100, 255, cv::THRESH_BINARY_INV);
@@ -48,10 +49,10 @@ std::vector<cv::Point2f> Projector::detect(const cv::Mat& src) const
         double v = centroids.at<double>(i, 1);
 
         /** Calculate the real-world coordinates from the pixel **/
-        point.x = (u - cx) * depth_ / fx;
-        point.y = (v - cy) * depth_ / fy;
+        point.x = (u - cx) * mDepth / fx;
+        point.y = (v - cy) * mDepth / fy;
 
-        points.push_back(point + tvec_ + error_compensation);
+        points.push_back(point + mTranslation + mErrorCompensation);
     }
     return points;
 }
@@ -59,7 +60,7 @@ std::vector<cv::Point2f> Projector::detect(const cv::Mat& src) const
 std::unordered_set<uint8_t> Projector::locateHeap(const cv::Mat& src) const
 {
     cv::Mat undistorted_img, img_gray, img_blur, img_binary;
-    cv::undistort(src, undistorted_img, camera_matrix, dist_coeffs, new_camera_matrix);
+    cv::undistort(src, undistorted_img, mCameraMatrix, mDistCoeffs, mNewCameraMatrix);
     cv::cvtColor(undistorted_img, img_gray, cv::COLOR_BGR2GRAY);
     cv::medianBlur(img_gray, img_blur, 5);
     cv::threshold(img_blur, img_binary, 100, 255, cv::THRESH_BINARY_INV);
@@ -106,7 +107,7 @@ std::unordered_set<uint8_t> Projector::locateHeap(const cv::Mat& src) const
 void Projector::detect(const cv::Mat& src, cv::Mat& dst) const
 {
     cv::Mat undistorted_img, img_gray, img_blur, img_binary;
-    cv::undistort(src, undistorted_img, camera_matrix, dist_coeffs, new_camera_matrix);
+    cv::undistort(src, undistorted_img, mCameraMatrix, mDistCoeffs, mNewCameraMatrix);
     cv::cvtColor(undistorted_img, img_gray, cv::COLOR_BGR2GRAY);
     cv::medianBlur(img_gray, img_blur, 5);
     cv::threshold(img_blur, img_binary, 100, 255, cv::THRESH_BINARY_INV);
@@ -150,7 +151,7 @@ void Projector::detect(const cv::Mat& src, cv::Mat& dst) const
 void Projector::locateHeap(const cv::Mat& src, cv::Mat& dst) const
 {
     cv::Mat undistorted_img, img_gray, img_blur, img_binary;
-    cv::undistort(src, undistorted_img, camera_matrix, dist_coeffs, new_camera_matrix);
+    cv::undistort(src, undistorted_img, mCameraMatrix, mDistCoeffs, mNewCameraMatrix);
     cv::cvtColor(undistorted_img, img_gray, cv::COLOR_BGR2GRAY);
     cv::medianBlur(img_gray, img_blur, 5);
     cv::threshold(img_blur, img_binary, 100, 255, cv::THRESH_BINARY_INV);

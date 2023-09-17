@@ -17,6 +17,11 @@ inline void exitWithInfo(const std::string& error_info)
     exit(EXIT_FAILURE);
 }
 
+inline void throwError(const std::string& error_info)
+{
+    throw std::runtime_error("\033[1;31mError: " + error_info + "\033[0m");
+}
+
 /********************************************************************************
  * @brief Parse a setting file, yaml, to get value of the parameter.
  * @param setting_file Path to the setting file.
