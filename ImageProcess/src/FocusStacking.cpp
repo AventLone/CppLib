@@ -1,20 +1,17 @@
 #include "FocusStacking.h"
+#include "parseSetting.h"
 #include <filesystem>
 
-void FocusStacking::run(const std::vector<cv::Mat>& imgs_, cv::Mat& dst)
+namespace avent
 {
-    focusStack(alignImgs(imgs_), dst);
-}
-
 /*** Focus Stack all the images under the given folder ***/
-void FocusStacking::run(const std::string& dir_path, cv::Mat& dst)
+void FocusStacking::fuse(const std::string& dir_path, cv::Mat& dst)
 {
     std::filesystem::path p(dir_path);
 
     if (!std::filesystem::exists(p) || !std::filesystem::is_directory(p))
     {
-        std::cerr << "Error: " << p << " is not a directory" << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo(static_cast<std::string>(p) + " is not a directory!");
     }
 
     std::vector<std::string> img_paths;
@@ -28,8 +25,7 @@ void FocusStacking::run(const std::string& dir_path, cv::Mat& dst)
     }
     if (img_paths.empty())
     {
-        std::cerr << "Error: There is no image file under " << dir_path << " !" << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo("There is no image file under " + dir_path + "!");
     }
 
     std::vector<cv::Mat> imgs;
@@ -57,21 +53,18 @@ std::vector<cv::Mat> FocusStacking::alignImgs(const std::vector<cv::Mat>& imgs)
     cv::Mat refe_gray;
     cvtColor(imgs[0], refe_gray, cv::COLOR_BGR2GRAY);
 
-    /** 初始化参照图像的关键点和描述子 **/
+    /*** Declare key point and its descriptors ***/
     std::vector<cv::KeyPoint> keypoints_refe;
     cv::Mat descriptors_refe;
 
-    /** 检测关键点位置并计算描述子**/
-    detector->detectAndCompute(refe_gray, cv::Mat(), keypoints_refe, descriptors_refe);
-
+    mDetector->detectAndCompute(refe_gray, cv::Mat(), keypoints_refe, descriptors_refe);
 
     for (uint16_t i = 1; i < imgs.size(); ++i)
     {
         int w_i = imgs[i].cols, h_i = imgs[i].rows;
         if (w_i != w || h_i != h)
         {
-            std::cerr << "图片大小不一致！" << std::endl;
-            exit(EXIT_FAILURE);
+            exitWithInfo("The sizes of these images don't match!");
         }
 
         cv::Mat imgGray;
@@ -79,12 +72,12 @@ std::vector<cv::Mat> FocusStacking::alignImgs(const std::vector<cv::Mat>& imgs)
 
         std::vector<cv::KeyPoint> keypoints;
         cv::Mat descriptors;
-        detector->detectAndCompute(imgGray, cv::Mat(), keypoints, descriptors);
+        mDetector->detectAndCompute(imgGray, cv::Mat(), keypoints, descriptors);
 
         std::vector<std::vector<cv::DMatch>> rawMatches;
-        matcher->knnMatch(descriptors_refe, descriptors, rawMatches, 2);
+        mMatcher->knnMatch(descriptors_refe, descriptors, rawMatches, 2);
         std::vector<cv::DMatch> goodMatches;
-        for (auto& rawMatche : rawMatches)
+        for (const auto& rawMatche : rawMatches)
         {
             if (rawMatche[0].distance < 0.69 * rawMatche[1].distance)
             {
@@ -92,39 +85,38 @@ std::vector<cv::Mat> FocusStacking::alignImgs(const std::vector<cv::Mat>& imgs)
             }
         }
 
-        /** 根据distance对goodMatches进行排序 **/
+        /*** Sort goodMatches by its distance. ***/
         std::sort(goodMatches.begin(),
                   goodMatches.end(),
                   [](cv::DMatch& a, cv::DMatch& b) { return a.distance < b.distance; });
 
-        /** 取goodMatches的一部分 **/
+        /** Take a part of goodMatches. **/
         std::vector<cv::DMatch> matches(goodMatches.begin(),
                                         goodMatches.begin() + uint16_t(goodMatches.size() * 2 / 3));
 
-        std::vector<cv::Point2f> pointsRefe;
+        std::vector<cv::Point2f> points_refe;
         std::vector<cv::Point2f> points;
         for (const auto& match : matches)
         {
             points.push_back(keypoints[match.trainIdx].pt);
-            pointsRefe.push_back(keypoints_refe[match.queryIdx].pt);
+            points_refe.push_back(keypoints_refe[match.queryIdx].pt);
         }
 
-        cv::Mat Homo = cv::findHomography(points, pointsRefe, cv::RANSAC, 2.0);
+        cv::Mat homo = cv::findHomography(points, points_refe, cv::RANSAC, 2.0);
         cv::Mat outcome;
-        cv::warpPerspective(imgs[i], outcome, Homo, imgs[i].size(), cv::INTER_LINEAR);
+        cv::warpPerspective(imgs[i], outcome, homo, imgs[i].size(), cv::INTER_LINEAR);
         aligned_imgs.push_back(outcome);
     }
 
     return aligned_imgs;
 }
 
-cv::Mat FocusStacking::doLap(const cv::Mat& img)
+cv::Mat FocusStacking::doLap(const cv::Mat& img) const
 {
-    int kernel_size = 3, blur_size = 3;
     cv::Mat img_blur;
-    cv::GaussianBlur(img, img_blur, cv::Size(blur_size, blur_size), 0, 0);
+    cv::GaussianBlur(img, img_blur, cv::Size(3, 3), 0, 0);
     cv::Mat outcome;
-    cv::Laplacian(img_blur, outcome, CV_32F, kernel_size);
+    cv::Laplacian(img_blur, outcome, CV_32F, 3);
     return outcome;
 }
 
@@ -172,7 +164,7 @@ void FocusStacking::focusStack(const std::vector<cv::Mat>& aligned_imgs, cv::Mat
 
     /** 根据maxim制作掩膜 **/
     std::vector<cv::Mat> masks;
-    for (auto& lap : laps)
+    for (const auto& lap : laps)
     {
         cv::Mat mask = cv::Mat::zeros(cv::Size(w, h), CV_8UC1);
         for (int i = 0; i < h; ++i)
@@ -203,3 +195,4 @@ void FocusStacking::focusStack(const std::vector<cv::Mat>& aligned_imgs, cv::Mat
     }
     cv::bitwise_not(output, output);
 }
+}   // namespace avent

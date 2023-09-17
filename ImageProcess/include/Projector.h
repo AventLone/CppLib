@@ -1,9 +1,9 @@
-/**
- * @author Avent
- * @version 0.1
- * @date 2023-06-03
- * @copyright Copyright (Avent) 2023
- **/
+/**********************************************************
+ * @author AventLone
+ * @version 0.2
+ * @date 2023-04-25
+ * @copyright Copyright (AventLone) 2023
+ **********************************************************/
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <unordered_set>
