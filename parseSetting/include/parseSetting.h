@@ -44,7 +44,7 @@ std::array<std::variant<int, double, std::string, cv::Mat>, N> parseSettings(con
     cv::FileStorage fs_ettings(setting_file, cv::FileStorage::READ);
     if (!fs_ettings.isOpened())
     {
-        throwError("Failed to open settings file at: " + setting_file);
+        exitWithInfo("Failed to open settings file at: " + setting_file);
     }
 
     std::array<std::variant<int, double, std::string, cv::Mat>, N> outcomes;
@@ -72,7 +72,7 @@ std::array<std::variant<int, double, std::string, cv::Mat>, N> parseSettings(con
         }
         else
         {
-            throwError("\"" + params[i] + "\"" + " parameter doesn't exist");
+            exitWithInfo("\"" + params[i] + "\"" + " parameter doesn't exist");
         }
     }
     fs_ettings.release();

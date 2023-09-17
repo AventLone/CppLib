@@ -8,8 +8,7 @@ int parseSettings(const std::string& setting_file, const std::string& param)
     cv::FileStorage fs_settings(setting_file, cv::FileStorage::READ);
     if (!fs_settings.isOpened())
     {
-        std::cerr << "Failed to open settings file at: " << setting_file << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo("Failed to open settings file at: " + setting_file);
     }
 
     cv::FileNode node = fs_settings[param];
@@ -33,8 +32,7 @@ double parseSettings(const std::string& setting_file, const std::string& param)
     cv::FileStorage fs_settings(setting_file, cv::FileStorage::READ);
     if (!fs_settings.isOpened())
     {
-        std::cerr << "Failed to open settings file at: " << setting_file << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo("Failed to open settings file at: " + setting_file);
     }
 
     cv::FileNode node = fs_settings[param];
@@ -58,8 +56,7 @@ std::string parseSettings(const std::string& setting_file, const std::string& pa
     cv::FileStorage fs_settings(setting_file, cv::FileStorage::READ);
     if (!fs_settings.isOpened())
     {
-        std::cerr << "Failed to open settings file at: " << setting_file << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo("Failed to open settings file at: " + setting_file);
     }
 
     cv::FileNode node = fs_settings[param];
@@ -83,8 +80,7 @@ cv::Mat parseSettings(const std::string& setting_file, const std::string& param)
     cv::FileStorage fs_settings(setting_file, cv::FileStorage::READ);
     if (!fs_settings.isOpened())
     {
-        std::cerr << "Failed to open settings file at: " << setting_file << std::endl;
-        exit(EXIT_FAILURE);
+        exitWithInfo("Failed to open settings file at: " + setting_file);
     }
     cv::FileNode node = fs_settings[param];
     cv::Mat mat;

@@ -3,8 +3,8 @@ project(ImageProcess)
 set(CMAKE_CXX_STANDARD 17)
 
 # Add sub-directory
-set(UTILS_LIB api)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/utils/parseSetting)
+# set(UTILS_LIB api)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/utils/parseSetting)
 
 # add OpenCV
 find_package(OpenCV REQUIRED)
@@ -18,14 +18,10 @@ add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils/parseSetting/include
     ${OpenCV_INCLUDE_DIRS}
 )
 
-target_link_libraries(${PROJECT_NAME}
-    ${OpenCV_LIBS}
-    ${API_LIB}
-)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 add_executable(test test/test.cpp)
 target_include_directories(test PUBLIC
