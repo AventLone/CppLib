@@ -1,3 +1,9 @@
+/**********************************************************
+ * @author AventLone
+ * @version 0.1
+ * @date 2023-09-18
+ * @copyright Copyright (AventLone) 2023
+ **********************************************************/
 #pragma once
 #include "NvInfer.h"
 #include "NvOnnxParser.h"
@@ -16,16 +22,17 @@ struct Deleter
 };
 
 template<typename T>
-using trtUniquePtr = std::unique_ptr<T, Deleter>;
+using UniquePtr = std::unique_ptr<T, Deleter>;
 
 // template<typename T>
-// using trtSharedPtr = std::shared_ptr<T, Deleter>;
+// using SharedPtr = std::shared_ptr<T, Deleter>;
 
-/** @brief
+/********************************************************************************
+ * @brief
  * 用于创建IBuilder、IRuntime或IRefitter实例的记录器用于通过该接口创建的所有对象。
  * 在释放所有创建的对象之前，记录器应一直有效。
  * 主要是实例化ILogger类下的log()方法。
- **/
+ ********************************************************************************/
 class Logger : public nvinfer1::ILogger
 {
     void log(nvinfer1::ILogger::Severity severity, const char* message) noexcept override
@@ -38,45 +45,36 @@ class Logger : public nvinfer1::ILogger
     }
 };
 
-struct NetParams
-{
-    std::string trt_model_path;
-    std::string input_tensor_name, output_tensor_name;
-    int input_tensor_index, output_tensor_index;
-    nvinfer1::Dims input_dims;    // The dimensions of the input to the network.
-    nvinfer1::Dims output_dims;   // The dimensions of the output to the network.
-    size_t output_data_size;
-};
-using NetParams = struct NetParams;
-
 class Net
 {
 public:
-    explicit Net(const NetParams& params);
+    explicit Net(const std::string& setting_fiel, const std::string& model_path);
     virtual ~Net();
     Net(const Net& T) = delete;
     Net& operator=(const Net& T) = delete;
 
     void run(const cv::Mat& src, cv::Mat& dst);
 
+private:
+    // nvinfer1::ICudaEngine* mEngine;
+    // trtSharedPtr<nvinfer1::ICudaEngine> mEngine;
+    std::shared_ptr<nvinfer1::ICudaEngine> mEngine;   // The TensorRT engine used to run the network
+    UniquePtr<nvinfer1::IExecutionContext> mContext;
+    // nvinfer1::IExecutionContext* mContext;
+
+    void* mCudaBuffer[2];   // GPU memory buffer.
+
 protected:
+    /*** Net parameters ***/
+    int mInputTensorIdx, mOutputTensorIdx;
+    nvinfer1::Dims mInputDims, mOutputDims;   // The dimensions of the input and output to the network.
+    size_t mOutputDataSize;
+
+    /*** Buffer ***/
+    cv::Mat mOutput;   // A buffer storing output of the net.
+
     void doInference(const cv::Mat& input);
 
     virtual void postprocess(cv::Mat& img) = 0;
-
-    cv::Mat mOutput;   // The output of the net/model.
-
-    NetParams mParams;
-
-private:
-    // nvinfer1::ICudaEngine* mEngine;   // The TensorRT engine used to run the network
-    // trtSharedPtr<nvinfer1::ICudaEngine> mEngine;
-    std::shared_ptr<nvinfer1::ICudaEngine> mEngine;
-    trtUniquePtr<nvinfer1::IExecutionContext> mContext;
-
-
-    // nvinfer1::IExecutionContext* mContext;
-
-    void* mCudaBuffer[2];   // Create GPU memory buffer.
 };
 }   // namespace tensorRT

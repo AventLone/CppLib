@@ -1,0 +1,55 @@
+%YAML:1.0
+---
+#-------------------------------------------------------------------------------------
+# Camera Parameters
+#-------------------------------------------------------------------------------------
+# Width and height of the image.
+Image.width: 848
+Image.height: 480
+# Camera matrix and distortioin coefficients.
+CameraMatrix:
+  rows: 3
+  cols: 3
+  dt: d
+  data: [2392.63157,    0.     ,  863.19968,
+            0.     , 2381.9008 ,  797.51009,
+            0.     ,    0.     ,    1.     ]
+DistortionCoefficients:
+  rows: 1
+  cols: 5
+  dt: d
+  data: [-0.543357, 0.374918, -0.017988, -0.003129, 0.000000]
+
+
+#-------------------------------------------------------------------------------------
+# Mosquito detecting parameter
+#-------------------------------------------------------------------------------------
+# Moving range of the camera, x and y, height that camera is from plate
+BaseSizeAndDepth:
+  rows: 1
+  cols: 3
+  dt: f
+  data: [161.8, 183.0, 203.5]
+
+Threashold:
+  rows: 1
+  cols: 3
+  dt: i
+  data: [1, 5000, 120000000]
+
+# Error compensation, including x and y.
+ErrorCompensation:
+  rows: 1
+  cols: 2
+  dt: f
+  data: [5.0, 16.0]
+
+# Display mode, show_index or show_area or show_nothing
+DisplayMode: show_area
+
+
+#-------------------------------------------------------------------------------------
+# tensorRT Net parameters
+#-------------------------------------------------------------------------------------
+InputTensorName: images
+OutputTensorName: output0

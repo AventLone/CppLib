@@ -18,6 +18,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
+# Add test executable
 add_executable(test test/test.cpp)
 target_include_directories(test PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
