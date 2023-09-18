@@ -61,15 +61,16 @@ Net::~Net()
     // cudaFree(mCudaBuffer[mParams.mOutputTensorIdx]);
 }
 
-void Net::run(const cv::Mat& src, cv::Mat& dst)
+void Net::run(const cv::Mat& src, std::vector<cv::Mat>& dst)
 {
     if (src.empty())
     {
         avent::throwError("The input of tensorRT Net is empty!");
     }
-    dst = src.clone();
+    // dst = src.clone();
+    // cv::Mat temp_src = src.clone();
     doInference(src);
-    postprocess(dst);
+    postprocess(src, dst);
 }
 
 void Net::doInference(const cv::Mat& input)

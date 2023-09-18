@@ -15,16 +15,25 @@ public:
     Yolo& operator=(const Yolo&) = delete;
     ~Yolo() = default;
 
-    // std::vector<cv::Mat> getIndividuals(const cv::Mat& src);
-
 private:
     const float mConfThreshold{0.5f};   // Confidence threshold
     const float mNmsThreshold{0.4f};    // Non-maximum suppression threshold
 
-    std::vector<std::string> mClasses;
+    std::vector<std::string> mClasses;   // Categories the model can recognize.
 
+    /*** Parameters for post process ***/
+    std::vector<int> mClassIndexes;
+    std::vector<float> mConfidences;
+    std::vector<cv::Rect> mBoxes;
+
+private:
     void drawPred(int class_id, float confidence, const cv::Rect& box, cv::Mat& frame) const;
 
-    void postprocess(cv::Mat&) override;
+    /*** Two choices for personaalized postprocess ***/
+    void (Yolo::*personalizedPostprocess)(const cv::Mat&, std::vector<cv::Mat>&, const std::vector<int>&) const;
+    void getWholeWithMarks(const cv::Mat& src, std::vector<cv::Mat>& dst, const std::vector<int>& indices) const;
+    void getSeparateTarget(const cv::Mat& src, std::vector<cv::Mat>& dst, const std::vector<int>& indices) const;
+
+    void postprocess(const cv::Mat& src, std::vector<cv::Mat>& dst) override;
 };
 }   // namespace tensorRT

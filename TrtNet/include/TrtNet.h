@@ -53,14 +53,11 @@ public:
     Net(const Net& T) = delete;
     Net& operator=(const Net& T) = delete;
 
-    void run(const cv::Mat& src, cv::Mat& dst);
+    void run(const cv::Mat& src, std::vector<cv::Mat>& dst);
 
 private:
-    // nvinfer1::ICudaEngine* mEngine;
-    // trtSharedPtr<nvinfer1::ICudaEngine> mEngine;
     std::shared_ptr<nvinfer1::ICudaEngine> mEngine;   // The TensorRT engine used to run the network
     UniquePtr<nvinfer1::IExecutionContext> mContext;
-    // nvinfer1::IExecutionContext* mContext;
 
     void* mCudaBuffer[2];   // GPU memory buffer.
 
@@ -75,6 +72,6 @@ protected:
 
     void doInference(const cv::Mat& input);
 
-    virtual void postprocess(cv::Mat& img) = 0;
+    virtual void postprocess(const cv::Mat& src, std::vector<cv::Mat>& dst) = 0;
 };
 }   // namespace tensorRT

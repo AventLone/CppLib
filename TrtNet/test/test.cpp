@@ -8,14 +8,19 @@ int main()
     // cv::Mat img = cv::imread("/home/avent/Desktop/MosqiBot_Pictures/Task_14/Group_1/30.jpg");
     cv::Mat img = cv::imread("../data/images/4.jpg");
 
-    cv::Mat img_detected;
+    std::vector<cv::Mat> img_detected;
     net->run(img, img_detected);
 
     // auto imgs = net->getIndividuals(img);
     // int i = 0;
 
-    cv::imshow("22", img_detected);
-    cv::waitKey(0);
+
+    for (const auto& img : img_detected)
+    {
+        cv::imshow("22", img);
+        cv::waitKey(2000);
+    }
+
 
     return 0;
 }
