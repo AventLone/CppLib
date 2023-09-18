@@ -2,7 +2,9 @@
 
 ## parseSetting
 
-
+- `eixtWithError()`：退出程序并打印红色的错误信息；
+- `throwError()`：抛出红色信息的异常；
+- `parseSettings`：解析 `yaml` 文件中的参数设置。
 
 
 

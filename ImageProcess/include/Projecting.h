@@ -32,19 +32,19 @@ public:
      ********************************************************************************/
     std::vector<cv::Point2f> locateTarget(const cv::Mat& src) const;
     /********************************************************************************
+     * @brief Visualize coordinates of the targets on the image.
+     * @param src A cv::Mat for input.
+     * @param dst A cv::Mat for output.
+     ********************************************************************************/
+    void locateTarget(const cv::Mat& src, cv::Mat& dst) const;
+    
+    /********************************************************************************
      * @brief Determine which part or parts of the plate has mosquito heap
      * @param src A cv::Mat for input.
      * @return A std::unordered_set<uint8_t> containing the indexes of the parts
      * existing mosquito heap on the plate.
      ********************************************************************************/
     std::unordered_set<uint8_t> locateHeap(const cv::Mat& src) const;
-
-    /********************************************************************************
-     * @brief Visualize coordinates of the targets on the image.
-     * @param src A cv::Mat for input.
-     * @param dst A cv::Mat for output.
-     ********************************************************************************/
-    void locateTarget(const cv::Mat& src, cv::Mat& dst, DisplayMode display_mode = SHOW_INDEX) const;
     /********************************************************************************
      * @brief Visualize a part or some parts of the plate has mosquito heap
      * @param src A cv::Mat for input.

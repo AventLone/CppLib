@@ -156,7 +156,7 @@ std::unordered_set<uint8_t> Projecting::locateHeap(const cv::Mat& src) const
     return area_mark_set;
 }
 
-void Projecting::locateTarget(const cv::Mat& src, cv::Mat& dst, DisplayMode display_mode) const
+void Projecting::locateTarget(const cv::Mat& src, cv::Mat& dst) const
 {
     cv::Mat undistorted_img, img_gray, img_blur, img_binary;
     cv::undistort(src, undistorted_img, mCameraMatrix, mDistCoeffs, mNewCameraMatrix);
