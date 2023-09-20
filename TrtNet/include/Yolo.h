@@ -10,10 +10,25 @@ namespace tensorRT
 class Yolo : public Net
 {
 public:
+    enum OutputMode
+    {
+        WHOLE_MODE,
+        SEPARATE_MODE,
+        SEPARATE_MODE_WITHOUT_LABEL
+    };
+
+public:
     explicit Yolo(const std::string& setting_file, const std::string& net_file, const std::string& class_file);
     Yolo(const Yolo&) = delete;
     Yolo& operator=(const Yolo&) = delete;
     ~Yolo() = default;
+
+    OutputMode getOutputMode()
+    {
+        return mOutputMode;
+    }
+
+    void switchOutputModeTo(OutputMode output_mode);
 
 private:
     const float mConfThreshold{0.5f};   // Confidence threshold
@@ -25,6 +40,8 @@ private:
     std::vector<int> mClassIndexes;
     std::vector<float> mConfidences;
     std::vector<cv::Rect> mBoxes;
+
+    OutputMode mOutputMode;
 
 private:
     void drawPred(int class_id, float confidence, const cv::Rect& box, cv::Mat& frame) const;

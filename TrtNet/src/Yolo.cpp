@@ -16,16 +16,42 @@ Yolo::Yolo(const std::string& setting_file, const std::string& net_file, const s
     if (mode == "whole_mode")
     {
         personalizedPostprocess = &Yolo::getWholeWithMarks;
+        mOutputMode = WHOLE_MODE;
     }
     else if (mode == "separate_mode")
     {
         personalizedPostprocess = &Yolo::getSeparateTarget;
+        mOutputMode = SEPARATE_MODE;
+    }
+    else if (mode == "separate_mode_without_label")
+    {
+        personalizedPostprocess = &Yolo::getSeparateTarget;
+        mOutputMode = SEPARATE_MODE_WITHOUT_LABEL;
     }
     else
     {
         std::cerr << mode << " is a wrong format!" << std::endl;
         personalizedPostprocess = &Yolo::getWholeWithMarks;
     }
+}
+
+void Yolo::switchOutputModeTo(OutputMode output_mode)
+{
+    switch (output_mode)
+    {
+        case WHOLE_MODE:
+            personalizedPostprocess = &Yolo::getWholeWithMarks;
+            break;
+        case SEPARATE_MODE:
+            personalizedPostprocess = &Yolo::getSeparateTarget;
+            break;
+        case SEPARATE_MODE_WITHOUT_LABEL:
+            personalizedPostprocess = &Yolo::getSeparateTarget;
+            break;
+        default:
+            break;
+    }
+    mOutputMode = output_mode;
 }
 
 void Yolo::drawPred(int class_index, float confidence, const cv::Rect& box, cv::Mat& frame) const
@@ -44,12 +70,12 @@ void Yolo::drawPred(int class_index, float confidence, const cv::Rect& box, cv::
     }
 
     /*** Display the label at the top of the bounding box. ***/
-    int baseLine;
-    cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-    top = std::max(top, labelSize.height);
+    int base_line;
+    cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &base_line);
+    top = std::max(top, label_size.height);
     cv::rectangle(frame,
-                  cv::Point(left, top - labelSize.height),
-                  cv::Point(left + labelSize.width, top + baseLine),
+                  cv::Point(left, top - label_size.height),
+                  cv::Point(left + label_size.width, top + base_line),
                   cv::Scalar(255, 255, 255),
                   cv::FILLED);
     cv::putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 1, cv::LINE_AA);
@@ -71,28 +97,31 @@ void Yolo::getSeparateTarget(const cv::Mat& src, std::vector<cv::Mat>& dst, cons
     {
         cv::Mat tmp = src(mBoxes[index]).clone();
 
-        std::string conf_label = cv::format("%.2f", mConfidences[index]);
-        std::string label;
-        if (!mClasses.empty())
+        if (mOutputMode == SEPARATE_MODE)
         {
-            label = mClasses[index] + ":" + conf_label;
+            std::string conf_label = cv::format("%.2f", mConfidences[index]);
+            std::string label;
+            if (!mClasses.empty())
+            {
+                label = mClasses[index] + ":" + conf_label;
+            }
+            /*** Display the label at the top of the bounding box. ***/
+            int base_line;
+            cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &base_line);
+            cv::rectangle(tmp,
+                          cv::Point(0, 0),
+                          cv::Point(label_size.width, 2 * base_line + 6),
+                          cv::Scalar(255, 255, 255),
+                          cv::FILLED);
+            cv::putText(tmp,
+                        label,
+                        cv::Point(0, 2 * base_line + 3),
+                        cv::FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        cv::Scalar(0, 0, 0),
+                        1,
+                        cv::LINE_AA);
         }
-
-        /*** Display the label at the top of the bounding box. ***/
-        int baseLine;
-        cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-        // top = std::max(top, labelSize.height);
-        cv::rectangle(
-            tmp, cv::Point(0, 0), cv::Point(labelSize.width, 2 * baseLine + 6), cv::Scalar(255, 255, 255), cv::FILLED);
-        cv::putText(tmp,
-                    label,
-                    cv::Point(0, 2 * baseLine + 3),
-                    cv::FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    cv::Scalar(0, 0, 0),
-                    1,
-                    cv::LINE_AA);
-
         dst.emplace_back(tmp);
     }
 }

@@ -56,6 +56,6 @@ DisplayMode: show_area
 InputTensorName: images
 OutputTensorName: output0
 
-# Yolo outpu mode, whole_mode or separate_mode
-OutputMode: separate_mode
+# Yolo outpu mode, whole_mode or separate_mode or separate_mode_without_label
+OutputMode: separate_mode_without_label
 #-------------------------------------------------------------------------------------
